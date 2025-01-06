@@ -1,10 +1,18 @@
-*.swp
-package-lock.json
-__pycache__
-.pytest_cache
-.venv
-*.egg-info
+*.js
+!jest.config.js
+*.d.ts
+/website/node_modules
+/test
 
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+node_modules/
+
+support/
+
+
+
+*.drawio
+

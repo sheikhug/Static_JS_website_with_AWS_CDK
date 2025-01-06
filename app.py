@@ -1,28 +1,43 @@
 #!/usr/bin/env python3
+
 import os
-
-import aws_cdk as cdk
-
-from eprolms_static_website.eprolms_static_website_stack import EprolmsStaticWebsiteStack
+from aws_cdk import App, Environment
+from site_stack import StaticSiteStack
 
 
-app = cdk.App()
-EprolmsStaticWebsiteStack(app, "EprolmsStaticWebsiteStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
+app = App()
+props = {
+    "namespace": app.node.try_get_context("namespace"),
+    "domain_name": app.node.try_get_context("domain_name"),
+    "sub_domain_name": app.node.try_get_context("sub_domain_name"),
+    "domain_certificate_arn": app.node.try_get_context(
+        "domain_certificate_arn"
+    ),
+    "enable_s3_website_endpoint": app.node.try_get_context(
+        "enable_s3_website_endpoint"
+    ),
+    "origin_custom_header_parameter_name": app.node.try_get_context(
+        "origin_custom_header_parameter_name"
+    ),
+    "hosted_zone_id": app.node.try_get_context("hosted_zone_id"),
+    "hosted_zone_name": app.node.try_get_context("hosted_zone_name"),
+}
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+env = Environment(
+    account=os.environ.get(
+        "CDK_DEPLOY_ACCOUNT", os.environ.get("CDK_DEFAULT_ACCOUNT")
+    ),
+    region=os.environ.get(
+        "CDK_DEPLOY_REGION", os.environ.get("CDK_DEFAULT_REGION")
+    ),
+)
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+StaticSite = StaticSiteStack(
+    scope=app,
+    construct_id=f"{props['namespace']}-stack",
+    props=props,
+    env=env,
+    description="Static Site using S3, CloudFront and Route53",
+)
 
 app.synth()
